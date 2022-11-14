@@ -27,13 +27,13 @@ We note that we can consider diffusion of a magnetic field with circular field l
 by consider the form of the flux function 
 """
 eta = np.exp(-aa**2 - bb**2)
-ux = (1/2)*((jt-jz)*bb) #velocity in x. By Parnell, this is the partial derivative of the flux function in y
-uy = (1/2)*((jt+jz)/2)*aa #velocity in y
+ux = -(1/2)*((jt-jz)*bb) 
+uy = (1/2)*((jt+jz)/2)*aa 
 
 """
 The above ux and uy are actually bx and by. What are ux and uy?
 ux and uy must be defined elsewhere surely? Can find electric field as a result of B field
-then find velocity using Ohm's law
+then find velocity using Ohm's law (for ideal fluids) E+u x B = 0. So made ux negative to account for this?
 """
 
 plt.contour(xx,yy,A)

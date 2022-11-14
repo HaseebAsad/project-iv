@@ -1,7 +1,8 @@
-import numpy as np
-from scipy import integrate
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as axes3d
+import numpy as np
+from scipy import integrate
+import random
 
 """
 First, find the field lines using the scipy inbuilt library. Field lines are the contours of the Flux function.
@@ -14,7 +15,7 @@ Worth noting that the matplotlib function will expect the inputs to be in Cartes
 Let our example be for a "single source". Priest 03
 """
 """
-Example is the ABC magnetic field ()
+Example is the ABC magnetic field 
 """
 
 def fieldLine(M, t, A, B, C):
@@ -23,14 +24,16 @@ def fieldLine(M, t, A, B, C):
     return dBds
 
 A = 1
-B = 1
-C = 1
+B = np.sqrt(2/3)
+C = np.sqrt(1/3)
 
-y0 = [np.pi, -np.pi, 0.0]
-t = np.linspace(0, 10, 101)
+B0 = [np.pi, -np.pi, 0.0] #ICs
+t = np.linspace(-10, 10, 101)
 
-sol = integrate.odeint(fieldLine, y0, t, args=(A, B, C)) #Will give an array of numerical solutions to the ODE.
-#Plot the solution to the ODE
+
+
+sol = integrate.odeint(fieldLine, B0, t, args=(A, B, C)) #Will give an array of numerical solutions to the ODE.
+#Plot the field lines with respect to their parameter (arclength)
 plt.plot(t, sol[:, 0], 'b', label='x(t)')
 plt.plot(t, sol[:, 1], 'g', label='y(t)')
 plt.plot(t, sol[:, 2], 'r', label='z(t)')
@@ -38,3 +41,15 @@ plt.legend(loc='best')
 plt.xlabel('t')
 plt.grid()
 plt.show()
+
+#Plot of the field lines (in 3D!)
+ax = plt.axes(projection='3d')
+for i in range (20):
+    B0 = [random.random()*np.pi, random.random()*np.pi, random.random()*np.pi]
+    sol = integrate.odeint(fieldLine, B0, t, args=(A, B, C))
+    ax.plot3D(sol[:, 0],sol[:, 1],sol[:, 2])
+plt.show()
+"""
+To get several field lines, as Yeates has done, we need several different ICs!
+Could use a for loop to add all these lines in for plenty of different starting points.
+"""
