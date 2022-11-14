@@ -16,22 +16,24 @@ b = np.linspace(-100,100,10)
 aa,bb = np.meshgrid(a,b,indexing='ij')
 
 # Define eta, ux, uy etc via:
-q = 1.6e-19
-p = 1.6e-19
-jt = sqrt(4*p**2+q**2) #jt is only defined by p. Could let q=1 by change of units?
+q = 1
+p = 1
+jt = sqrt(4*p**2+q**2)
 jz = (1/2)*(q)
 
-A = (jt/4)*((jt-jz)*yy**2-(jt+jz)*xx**2) #from Parnell 1996 for 2D fields.
+A = (1/4)*((jt-jz)*yy**2-(jt+jz)*xx**2) #from Parnell 1996 for 2D (not necessarily potential!) fields.
 """
 We note that we can consider diffusion of a magnetic field with circular field lines
 by consider the form of the flux function 
 """
 eta = np.exp(-aa**2 - bb**2)
-ux = ((jt-jz)/2)*bb #velocity in x. By Parnell, this is the partial derivative of the flux function in y
-uy = ((jt-jz)/2)*aa #velocity in y
+ux = (1/2)*((jt-jz)*bb) #velocity in x. By Parnell, this is the partial derivative of the flux function in y
+uy = (1/2)*((jt+jz)/2)*aa #velocity in y
 
 """
-Check velocities of plasma flow
+The above ux and uy are actually bx and by. What are ux and uy?
+ux and uy must be defined elsewhere surely? Can find electric field as a result of B field
+then find velocity using Ohm's law
 """
 
 plt.contour(xx,yy,A)
