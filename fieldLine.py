@@ -15,41 +15,31 @@ Worth noting that the matplotlib function will expect the inputs to be in Cartes
 Let our example be for a "single source". Priest 03
 """
 """
-Example is the ABC magnetic field 
+Example is an extremely basic flux function.
+To determine the field lines of an arbitrary magnetic field requires you to write this code again.
+Could create a class to prevent having to do this in the future with many more field lines?
 """
 
-def fieldLine(M, t, A, B, C):
+def fieldLine(M, t, C):
     x, y, z = M
-    dBds = [A*np.sin(z)+C*np.cos(y), B*np.sin(x)+A*np.cos(z), C*np.sin(y)+B*np.cos(x)]
+    dBds = [y,x, 0]
     return dBds
 
-A = 1
-B = np.sqrt(2/3)
-C = np.sqrt(1/3)
+C = 1
 
-B0 = [np.pi, -np.pi, 0.0] #ICs
-t = np.linspace(-10, 10, 101)
-
-
-
-sol = integrate.odeint(fieldLine, B0, t, args=(A, B, C)) #Will give an array of numerical solutions to the ODE.
-#Plot the field lines with respect to their parameter (arclength)
-plt.plot(t, sol[:, 0], 'b', label='x(t)')
-plt.plot(t, sol[:, 1], 'g', label='y(t)')
-plt.plot(t, sol[:, 2], 'r', label='z(t)')
-plt.legend(loc='best')
-plt.xlabel('t')
-plt.grid()
-plt.show()
+t = np.linspace(-5, 5, 100)
 
 #Plot of the field lines (in 3D!)
+
 ax = plt.axes(projection='3d')
-for i in range (20):
-    B0 = [random.random()*np.pi, random.random()*np.pi, random.random()*np.pi]
-    sol = integrate.odeint(fieldLine, B0, t, args=(A, B, C))
+N = 10 #Number of (equally spaced) ICs in the interval
+l = 5 #half-length of volume of cube to plot in (symmetric around axis)
+for i in range (N):
+    B0 = [-l + i*(2*l)/N, -l + i*(2*l)/N, -l + i*(2*l)/N] #equally spaced intervals in cube
+    sol = integrate.odeint(fieldLine, B0, t, args=(C,)) #for our basic example this keeps outputting x = y?
+    print(sol)
     ax.plot3D(sol[:, 0],sol[:, 1],sol[:, 2])
+ax.set_zlim(-5,5)
+ax.set_xlim(-5,5)
+ax.set_ylim(-5,5)
 plt.show()
-"""
-To get several field lines, as Yeates has done, we need several different ICs!
-Could use a for loop to add all these lines in for plenty of different starting points.
-"""
