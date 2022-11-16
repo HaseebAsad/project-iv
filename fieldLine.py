@@ -37,7 +37,6 @@ l = 5 #half-length of volume of cube to plot in (symmetric around axis)
 for i in range (N):
     B0 = [-l + i*(2*l)/N, -l + i*(2*l)/N, -l + i*(2*l)/N] #equally spaced intervals in cube
     sol = integrate.odeint(fieldLine, B0, t, args=(C,)) #for our basic example this keeps outputting x = y?
-    print(sol)
     ax.plot3D(sol[:, 0],sol[:, 1],sol[:, 2])
 ax.set_zlim(-5,5)
 ax.set_xlim(-5,5)
