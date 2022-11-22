@@ -35,7 +35,7 @@ ax = plt.axes(projection='3d')
 N = 10 #Number of (equally spaced) ICs in the interval
 l = 5 #half-length of volume of cube to plot in (symmetric around axis)
 for i in range (N):
-    B0 = [-l + i*(2*l)/N, -l + i*(2*l)/N, -l + i*(2*l)/N] #equally spaced intervals in cube
+    B0 = [-l + i*(2*l)/N, 0, -l + i*(2*l)/N] #equally spaced intervals in cube
     sol = integrate.odeint(fieldLine, B0, t, args=(C,)) #for our basic example this keeps outputting x = y?
     ax.plot3D(sol[:, 0],sol[:, 1],sol[:, 2])
 ax.set_zlim(-5,5)
