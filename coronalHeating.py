@@ -97,4 +97,29 @@ def energyReleaseImpact(F1, F2, delta, b):
     deltaE = (Fmin**2)/(6*np.pi**2*mu*b)*(np.arccos(b/delta))**2
     return deltaE
 
-#We need the rate of colissions between the two sources to find the minimum rate of energy release. 
+#We need the rate of collisions between the two sources to find the minimum rate of energy release. 
+
+def collisionRate(v0, Nopp):
+    nu = 2*v0*(Nopp/np.pi)**(1/2)
+    return nu
+
+#It is better to separately consider the mean rate of energy release without using the collission rate. Priest 04 offers an approximation which reduces our calculation to simply
+
+def meanEnergyRelease(F1, F2, Nopp, v0):
+    Fmin = np.min([F1,F2])
+    releaseRate = (1/(3*np.pi*mu))*(Fmin**2)*Nopp*v0
+    return releaseRate
+
+#The corresponding heat flux from the majority species of density N therefore becomes
+
+def heatFlux(F1, F2, N, Nopp, v0):
+    energyReleaseRate = meanEnergyRelease(F1, F2, Nopp, v0)
+    heatFlux = N*energyReleaseRate
+    return heatFlux
+
+#This is effectively all we need. We can also write the heat flux in terms of the mean flux densities
+
+def heatFluxMagnetic(Bplus, Bminus, Fmin, Fmax, v0):
+    eta = Fmin/Fmax #ratio of the minority to majority flux. What does this actually mean numerically?
+    heatFlux = (1/(3*np.pi*mu))*eta*Bplus*Bminus*v0
+    return heatFlux
