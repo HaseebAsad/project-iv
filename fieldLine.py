@@ -22,7 +22,7 @@ Could create a class to prevent having to do this in the future with many more f
 
 def fieldLine(M, t, C):
     x, y, z = M
-    dBds = [y,x, 0]
+    dBds = [0,0, C/(x**2+y**2)]
     return dBds
 
 C = 1
@@ -33,7 +33,7 @@ t2 = np.linspace(0,-2,100)
 #Plot of the field lines (in 3D!)
 
 ax = plt.axes(projection='3d')
-N = 20 #Number of (equally spaced) ICs in the interval
+N = 50 #Number of (equally spaced) ICs in the interval
 l = 5 #half-length of volume of cube to plot in (symmetric around axis)
 
 """

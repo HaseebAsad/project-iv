@@ -28,7 +28,8 @@ def helicityInjection(wi,Fi,theta):
 In the following, we give the functions for the energetics as a result of the helicity injection.
 Let B0 be the magnitude of the magnetic field (of which field?), mu =  permeability, v1= velocity of outward-propogating Alfvén wave.
 """
-mu = 1.25663706e10-6 #permeability of free space
+mu = 1.25663706e-6 #permeability of free space
+print(mu)
 
 # The below is a definition of power including the radius between the pair of sources
 
@@ -123,3 +124,15 @@ def heatFluxMagnetic(Bplus, Bminus, Fmin, Fmax, v0):
     eta = Fmin/Fmax #ratio of the minority to majority flux. What does this actually mean numerically?
     heatFlux = (1/(3*np.pi*mu))*eta*Bplus*Bminus*v0
     return heatFlux
+    
+#Does this relate to heating rate though?
+
+"""
+We know plug in our canonical values for B+, B-, Fheat, v0.
+Mean B values are = 3G = 0.0003T at solar minimum, 20 G = 0.002T at solar maximum (Harvey 1993).
+Adopting B+=B- of 20 g=0.002 in quiet sun and B+ is 200g=0.02T we have a different story.
+"A reasonable value for the speed of the photospheric fragents is 0.3Kms-1" (Hagenaar 01). Other sources seem to suggest a more sensible is around 1 Kms-1
+For heating flux, Katsukawa & Tsuneta 03 give 100 Wm-2 in quiet sun and 10e4 Wm-2 in active sun regions. This is a task to be done - updating these values. These are the values we are aiming for.
+"""
+
+print(heatFluxMagnetic(0.02, 0.02, 1, 1, 300)) #Active region for sun
