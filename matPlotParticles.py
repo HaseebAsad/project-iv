@@ -1,3 +1,4 @@
+#%%
 import matplotlib
 matplotlib.use('QT5Agg')
 import matplotlib.pyplot as plt
@@ -57,6 +58,7 @@ anim = animation.FuncAnimation(fig, animate, frames=200, interval=45, repeat=Tru
 
 plt.show()
 
-anim.save('particles.gif', fps=25)
+#anim.save('particles.gif', fps=25)
 #anim.save('particles.gif', writer='ffmpeg', fps=25)
 #anim.save('particles.gif', writer='imagemagick', fps=25)
+# %%
