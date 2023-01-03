@@ -15,7 +15,8 @@ In the previous function work we've done, they generalise in the paper with dens
 limit_x = 20
 limit_y = 20
 
-N = 300
+N = 200 # Number of particles
+frac = random.random() # (Random) fraction of particles to be given positive polarity
 R = 1
 
 def force_init(n):
@@ -29,15 +30,18 @@ position = force_init(N)
 velocity = np.random.randn(N, 2) #Monte Carlo velocity
 
 l = 0
+
 while np.amax(abs(velocity)) > 0.01:
     if l%15 == 0:
         x = position[:,0]
         y = position[:,1]
-        plt.plot(x, y, 'r+') #red plus. We want n random to be blue 'b-' (negative polarity), N-n to be red (negative polarity).
+        plt.plot(x, y, 'r+')
         plt.show()
-
+    """
+    We want the above to have a random number n of positive particles, and N-n negative particles.
+    """
     position += velocity
-    velocity *= 0.995
+    velocity *= 0.995 # messing with this changes the number of iterations the code does? How can I change this?
 
     # make 3D arrays with repeated position vectors to form combinations
     # diff_i[i][j] = position[i]
@@ -51,6 +55,9 @@ while np.amax(abs(velocity)) > 0.01:
 
     # make norm upper triangular (excluding diagonal)
     # This prevents double counting the i,j and j,i pairs
+    """
+    Take care of particle collision code.
+    """
     collided = np.triu(norm < R, k=1)
 
     for i, j in zip(*np.nonzero(collided)):
