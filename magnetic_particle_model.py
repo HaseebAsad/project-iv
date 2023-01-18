@@ -10,9 +10,9 @@ by flipping the coordinates (may be easier to simply implement taking away the l
 """
 
 # Constants
-n_particles = 3  # Number of particles
-velocity_scale = 20 # Determines the magnitude of each random walk
-box_length = 50
+n_particles = 7  # Number of particles
+velocity_scale = 3 # Determines the magnitude of each random walk
+box_length = 5
 n_points  = 100
 
 # Initialize arrays to store positions, velocities, and polarities of particles
@@ -51,7 +51,7 @@ t_max = 1
 # Create a figure and axis object for the plot
 fig, axis = plt.subplots()
 num_of_frames = int(t_max/dt)
-interaction_radius = 5
+interaction_radius = 0.5
 
 # Function to update the plot at each frame
 def update(t,x,y,polarity):
@@ -72,7 +72,7 @@ def update(t,x,y,polarity):
                 polarity [j] = 0 # The particle that has its polarity adopted is now no longer of any polarity.
         if polarity [i] == 0:
             x[i], y[i] = 100*box_length, 100*box_length # This will remove the particle from physical view and no impact on magnetic field calculations.
-            print("particle {} is dead".format(i))
+            # print("particle {} is dead".format(i))
         # Update the colour of the polarity
         colors[i] = 'r' if polarity[i] >= 0 else 'b'
 
@@ -92,12 +92,15 @@ def update(t,x,y,polarity):
             if y[i] < -box_length:
                 y[i] += 2*box_length
 
+    # Clear the plot and update the positions of the particles
+    axis.clear()
+    axis.scatter(x, y, c=colors, s=np.abs(polarity)*100)
     """ 
-    Calculate the form of the B-field. Will then need to solve them using odeint?
+    Calculate the form of the B-field and plot.
     """
     Bx, By = 0, 0
-    xf = np.arange(-box_length,box_length,0.5)
-    yf = np.arange(-box_length,box_length,0.1)
+    xf = np.arange(-box_length,box_length,0.25)
+    yf = np.arange(-box_length,box_length,0.25)
     # Meshgrid
     X, Y = np.meshgrid(xf,yf)
 
@@ -105,12 +108,9 @@ def update(t,x,y,polarity):
         norm = np.sqrt((X-x[i])**2 + (Y-y[i])**2)
         Bx += ((X-x[i])/norm) * polarity[i]
         By += ((Y-y[i])/norm) * polarity[i]
-
+    
     axis.streamplot(X,Y,Bx,By, density=1.4, linewidth=None, color='#A23BEC')
-
-    # Clear the plot and update the positions of the particles
-    axis.clear()
-    axis.scatter(x, y, c=colors, s=np.abs(polarity)*100)
+    
     axis.set_xlim(-box_length, box_length) # Ensures the animation looks more natural.
     axis.set_ylim(-box_length, box_length)
     for i in range(n_particles):
