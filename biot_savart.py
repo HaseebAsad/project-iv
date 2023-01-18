@@ -13,7 +13,7 @@ q = np.array([1, -1, 1])  # Charge of each point source (in units of e). We can 
 r_0 = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0]])  # Position of each point source
 
 # The position where the magnetic field is to be calculated
-r = np.array([0, 0, 0])
+r = np.array([0, 0.01, 0])
 
 # Initialize the magnetic field array
 B = np.zeros(3)
@@ -23,7 +23,7 @@ B = np.zeros(3)
 for i in range(n):
     r_rel = r - r_0[i]  # Position relative to point source
     r_rel_norm = np.linalg.norm(r_rel)  # Distance to point source
-    B += (q[i] / (4 * np.pi) * (r_rel / r_rel_norm**3)) # Biot-Savart Law
+    B += (q[i] / (4 * np.pi) * (r_rel / r_rel_norm**2)) # Biot-Savart Law
 
 print(B) 
 
@@ -36,7 +36,7 @@ def calculate_B(r):
     for i in range(n):
         r_rel = r - r_0[i]  # Position relative to point source
         r_rel_norm = np.linalg.norm(r_rel)  # Distance to point source
-        B += (q[i] / (4 * np.pi) * (r_rel / r_rel_norm**3)) # Biot-Savart Law
+        B += (q[i] / (4 * np.pi) * (r_rel / r_rel_norm**2)) # Biot-Savart Law
     return B
 
 # Function to calculate the field line

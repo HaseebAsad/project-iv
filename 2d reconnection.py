@@ -21,7 +21,7 @@ p = 1
 jt = sqrt(4*p**2+q**2)
 jz = (1/2)*(q)
 
-A = (1/4)*((jt-jz)*yy**2-(jt+jz)*xx**2) #from Parnell 1996 for 2D (not necessarily potential!) fields.
+A = yy**2-xx**2 #from Parnell 1996 for 2D (not necessarily potential!) fields.
 """
 We note that we can consider diffusion of a magnetic field with circular field lines
 by consider the form of the flux function 
