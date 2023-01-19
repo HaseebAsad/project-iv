@@ -10,7 +10,7 @@ by flipping the coordinates (may be easier to simply implement taking away the l
 """
 
 # Constants
-n_particles = 7  # Number of particles
+n_particles = 3  # Number of particles
 velocity_scale = 3 # Determines the magnitude of each random walk
 box_length = 5
 n_points  = 100
