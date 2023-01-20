@@ -40,3 +40,13 @@ plt.contour(xx,yy,A)
 plt.contourf(aa,bb,eta)
 plt.quiver(aa,bb,ux,uy)
 # %%
+# Generate random angles
+angles = np.random.uniform(0, 2*np.pi, 100)
+# Generate random radius
+radii = np.random.uniform(0, 0.1, 100)
+# Convert polar coordinates to cartesian coordinates
+Bx0 = radii * np.cos(angles)
+By0 = radii * np.sin(angles)
+test = np.column_stack((x, y))
+# Print the starting positions
+print(test[0,0])

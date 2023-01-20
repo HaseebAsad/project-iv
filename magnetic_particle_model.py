@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import os
+from scipy.integrate import odeint
 
 """
 Using our code previously built, this code will be a construction of small N particles interacting, modelling in a random walk motion.
@@ -10,7 +11,7 @@ by flipping the coordinates (may be easier to simply implement taking away the l
 """
 
 # Constants
-n_particles = 3  # Number of particles
+n_particles = 7  # Number of particles
 velocity_scale = 3 # Determines the magnitude of each random walk
 box_length = 5
 n_points  = 100
@@ -21,7 +22,6 @@ y = np.zeros(n_particles)
 vx = np.zeros(n_particles)
 vy = np.zeros(n_particles)
 polarity = np.zeros(n_particles) # Polarity encodes the charge too.
-B = np.zeros((n_particles, 3))
 colors = np.zeros(n_particles, dtype=str)
 
 # Set initial positions, and polarities of particles
@@ -79,10 +79,10 @@ def update(t,x,y,polarity):
     
     # Update the positions of the particles based on their velocities
     for i in range(n_particles):
-        x[i] += vx[i] * dt
-        y[i] += vy[i] * dt
         norm = np.sqrt(x[i]**2+y[i]**2)
         if norm < 3*box_length:
+            x[i] += vx[i] * dt
+            y[i] += vy[i] * dt
             if x[i] > box_length:
                 x[i] += -2*box_length
             if x[i] < -box_length:
@@ -92,23 +92,57 @@ def update(t,x,y,polarity):
             if y[i] < -box_length:
                 y[i] += 2*box_length
 
+    """
+    Here we will use odeint to solve field lines. Steps are in Notion.
+    1. Create a function that defines the function we are integrating.
+    2. Integrate using odeint.
+    3. Create a circle around chosen particle, initialise field line starting positions.
+    4. Call function that solves the DE and see where it ends up for t_vals = np.arange(0, t_max, dt) 
+    """
+    def field_line(M, t, C):
+        p, q = M
+        dBxds, dByds = 0, 0
+        for i in range(n_particles): # Contribution to B from each particle
+            norm = np.sqrt((p-x[i])**2 + (q-y[i])**2)
+            dBxds += ((p-x[i])/norm) * polarity[i]
+            dByds += ((q-y[i])/norm) * polarity[i]
+        dBds = [dBxds, dByds]
+        return dBds
+
+    C = 1 # Test constant.
+    t_vals = np.arange(0, t_max, dt)
+    # Create a random grid around particle i with radius 0.1
+    for i in range(n_particles):
+        # Generate random angles
+        angles = np.random.uniform(0, 2*np.pi, 10)
+        # Generate random radius
+        radii = np.random.uniform(0, 0.1, 10)
+        # Convert polar coordinates to cartesian coordinates
+        Ix0 = radii * np.cos(angles)
+        Iy0 = radii * np.sin(angles)
+        Ixy = np.column_stack((Ix0, Iy0)) # Initial field line starting positions.
+        for j in range(10):
+            # Initialise a starting position
+            B0 = [Ixy[j,0], Ixy[j,1]]
+            sol = odeint(field_line, B0, t_vals, args=(C,)) #No idea if this is working.
+
     # Clear the plot and update the positions of the particles
     axis.clear()
     axis.scatter(x, y, c=colors, s=np.abs(polarity)*100)
+
     """ 
-    Calculate the form of the B-field and plot.
+    Calculate the form of the B-field and plot. This gives a better visualisation than solving the field_line using odeint.
     """
     Bx, By = 0, 0
     xf = np.arange(-box_length,box_length,0.25)
     yf = np.arange(-box_length,box_length,0.25)
     # Meshgrid
     X, Y = np.meshgrid(xf,yf)
-
     for i in range(n_particles): # Contribution to B from each particle
         norm = np.sqrt((X-x[i])**2 + (Y-y[i])**2)
         Bx += ((X-x[i])/norm) * polarity[i]
         By += ((Y-y[i])/norm) * polarity[i]
-    
+    # Streamline plot
     axis.streamplot(X,Y,Bx,By, density=1.4, linewidth=None, color='#A23BEC')
     
     axis.set_xlim(-box_length, box_length) # Ensures the animation looks more natural.
@@ -118,6 +152,7 @@ def update(t,x,y,polarity):
 
 # Create the animation object
 anim = FuncAnimation(fig, update, frames=num_of_frames, fargs=(x,y,polarity), interval=10)
+# anim.save('myanimation.gif') 
 # Currently the animation object does not terminate on its own.
 
 # Show the plot

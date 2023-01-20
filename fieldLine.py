@@ -31,30 +31,6 @@ C = 1
 
 t = np.linspace(0, 2, 100)
 t2 = np.linspace(0,-2,100)
-# Plot of the field lines in 2d using streamplot() https://www.geeksforgeeks.org/how-to-plot-a-simple-vector-field-in-matplotlib/ is a GREAT source (last example)
-# Can ignore Z terms in a 2d projection.
-# 1D arrays
-x = np.arange(-5,5,0.1)
-y = np.arange(-5,5,0.1)
-  
-# Meshgrid
-X,Y = np.meshgrid(x,y)
-  
-# Assign vector directions
-Ex = -(X+2)/np.sqrt((X+2)**2+(Y)**2)+ 2*(X-1)/np.sqrt((X-1)**2+(Y-2)**2)- (X-2)/np.sqrt((X-2)**2+(Y-1)**2)
-Ey = -(Y)/np.sqrt((X+2)**2+(Y)**2)+ 2*(Y-2)/np.sqrt((X-1)**2+(Y-2)**2)- (Y-1)/np.sqrt((X-2)**2+(Y-1)**2)
-  
-# Depict illustration
-plt.figure(figsize=(10, 10))
-plt.streamplot(X,Y,Ex,Ey, density=1.4, linewidth=None, color='#A23BEC')
-plt.plot(-2,0,'-or')
-plt.plot(1,2,'-og')
-plt.plot(2,1,'-or')
-plt.title('Electromagnetic Field')
-  
-# Show plot with grid
-plt.grid()
-plt.show()
 
 # Initial positions for field lines
 ax = plt.axes(projection='3d')
