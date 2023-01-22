@@ -55,14 +55,17 @@ interaction_radius = 0.5
 
 # Function to update the plot at each frame
 def update(t,x,y,polarity):
+    # Clear the plot
+    axis.clear()
+    """Initialisers for B-field"""
+    Bx, By = 0, 0
+    xf = np.arange(-box_length,box_length,0.25)
+    yf = np.arange(-box_length,box_length,0.25)
+    # Meshgrid
+    X, Y = np.meshgrid(xf,yf)
 
-    # Update velocities of the particles based on a normal random walk
-    # Could have code here to prevent the blocks of code running for particles that have None as their position. e.g. if x[i] != None:
-    for i in range(n_particles):
-        vx[i] = np.random.normal(loc=0, scale=velocity_scale) # Normal distribution centred around mean=loc and scaled by velocity_scale
-        vy[i] = np.random.normal(loc=0, scale=velocity_scale)
-
-    # Check for interactions between particles and update their properties accordingly.
+    """Main for loop that checks for particle interactions, updates velocity based on a normal random walk, implements the resulting displacement, calculates B-field
+    etc. """
     for i in range(n_particles):
         for j in range(i+1, n_particles):
             dist = np.sqrt((x[i]-x[j])**2+(y[i]-y[j])**2) 
@@ -75,11 +78,11 @@ def update(t,x,y,polarity):
             # print("particle {} is dead".format(i))
         # Update the colour of the polarity
         colors[i] = 'r' if polarity[i] >= 0 else 'b'
-
-    
-    # Update the positions of the particles based on their velocities
-    for i in range(n_particles):
-        norm = np.sqrt(x[i]**2+y[i]**2)
+        """Update Velocities based on a normal random walk"""
+        vx[i] = np.random.normal(loc=0, scale=velocity_scale) # Normal distribution centred around mean=loc and scaled by velocity_scale
+        vy[i] = np.random.normal(loc=0, scale=velocity_scale)
+        """Update particle positions, and implement the periodic boundary conditions."""
+        norm = np.linalg.norm((x[i],y[i]))
         if norm < 3*box_length:
             x[i] += vx[i] * dt
             y[i] += vy[i] * dt
@@ -91,7 +94,17 @@ def update(t,x,y,polarity):
                 y[i] += -2*box_length
             if y[i] < -box_length:
                 y[i] += 2*box_length
-
+        """Calculate B-field, and add visual tags for each particle"""
+        denom = np.sqrt((X-x[i])**2 + (Y-y[i])**2)
+        Bx += ((X-x[i])/denom) * polarity[i]
+        By += ((Y-y[i])/denom) * polarity[i]
+        axis.text(x[i], y[i], f"{i, polarity[i]}") # Show index and charge of particle alongside.
+    axis.scatter(x, y, c=colors, s=np.abs(polarity)*100)
+    """ 
+    Calculate the form of the B-field and plot. This gives a better visualisation than solving the field_line using odeint.
+    """
+    # Streamline plot
+    axis.streamplot(X,Y,Bx,By, density=1.4, linewidth=None, color='#A23BEC')
     """
     Here we will use odeint to solve field lines. Steps are in Notion.
     1. Create a function that defines the function we are integrating.
@@ -108,52 +121,28 @@ def update(t,x,y,polarity):
             dByds += ((q-y[i])/norm) * polarity[i]
         dBds = [dBxds, dByds]
         return dBds
-
     C = 1 # Test constant.
     t_vals = np.arange(0, t_max, dt)
-    # Create a random grid around particle i with radius 0.1
+    # Generate random angles
+    angles = np.random.uniform(0, 2*np.pi, 10)
+    # Generate random radius
+    radii = np.random.uniform(0, 0.1, 10)
+    # Convert polar coordinates to cartesian coordinates
+    Ix0 = radii * np.cos(angles)
+    Iy0 = radii * np.sin(angles)
+    Ixy = np.column_stack((Ix0, Iy0)) # Initial field line starting positions.
     for i in range(n_particles):
-        # Generate random angles
-        angles = np.random.uniform(0, 2*np.pi, 10)
-        # Generate random radius
-        radii = np.random.uniform(0, 0.1, 10)
-        # Convert polar coordinates to cartesian coordinates
-        Ix0 = radii * np.cos(angles)
-        Iy0 = radii * np.sin(angles)
-        Ixy = np.column_stack((Ix0, Iy0)) # Initial field line starting positions.
         for j in range(10):
             # Initialise a starting position
             B0 = [Ixy[j,0], Ixy[j,1]]
             sol = odeint(field_line, B0, t_vals, args=(C,)) #No idea if this is working.
-
-    # Clear the plot and update the positions of the particles
-    axis.clear()
-    axis.scatter(x, y, c=colors, s=np.abs(polarity)*100)
-
-    """ 
-    Calculate the form of the B-field and plot. This gives a better visualisation than solving the field_line using odeint.
-    """
-    Bx, By = 0, 0
-    xf = np.arange(-box_length,box_length,0.25)
-    yf = np.arange(-box_length,box_length,0.25)
-    # Meshgrid
-    X, Y = np.meshgrid(xf,yf)
-    for i in range(n_particles): # Contribution to B from each particle
-        norm = np.sqrt((X-x[i])**2 + (Y-y[i])**2)
-        Bx += ((X-x[i])/norm) * polarity[i]
-        By += ((Y-y[i])/norm) * polarity[i]
-    # Streamline plot
-    axis.streamplot(X,Y,Bx,By, density=1.4, linewidth=None, color='#A23BEC')
     
     axis.set_xlim(-box_length, box_length) # Ensures the animation looks more natural.
     axis.set_ylim(-box_length, box_length)
-    for i in range(n_particles):
-        axis.text(x[i], y[i], f"{i, polarity[i]}") # Show index and charge of particle alongside.
 
 # Create the animation object
 anim = FuncAnimation(fig, update, frames=num_of_frames, fargs=(x,y,polarity), interval=10)
 # anim.save('myanimation.gif') 
 # Currently the animation object does not terminate on its own.
-
 # Show the plot
 plt.show()
