@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import os
 from scipy.integrate import odeint
-
 """
 Using our code previously built, this code will be a construction of small N particles interacting, modelling in a random walk motion.
 We implement periodic boundary conditions: if particles leave a given domain, it will mirror itself and return back inside the "box" 
@@ -11,7 +10,7 @@ by flipping the coordinates (may be easier to simply implement taking away the l
 """
 
 # Constants
-n_particles = 7  # Number of particles
+n_particles = 7 # Number of particles
 velocity_scale = 3 # Determines the magnitude of each random walk
 box_length = 5
 n_points  = 100
@@ -47,6 +46,17 @@ while total_polarity != 0:
 # Time step, simulation length
 dt = 0.1
 t_max = 1
+# Initialisers for fieldline calcs
+C = 1 # Test constant.
+t_vals = np.arange(0, t_max, dt)
+# Generate random angles
+angles = np.random.uniform(0, 2*np.pi, 10)
+# Generate random radius
+radii = np.random.uniform(0, 0.1, 10)
+# Convert polar coordinates to cartesian coordinates
+Ix0 = radii * np.cos(angles)
+Iy0 = radii * np.sin(angles)
+Ixy = np.column_stack((Ix0, Iy0)) # Initial field line starting positions.
 
 # Create a figure and axis object for the plot
 fig, axis = plt.subplots()
@@ -121,16 +131,7 @@ def update(t,x,y,polarity):
             dByds += ((q-y[i])/norm) * polarity[i]
         dBds = [dBxds, dByds]
         return dBds
-    C = 1 # Test constant.
-    t_vals = np.arange(0, t_max, dt)
-    # Generate random angles
-    angles = np.random.uniform(0, 2*np.pi, 10)
-    # Generate random radius
-    radii = np.random.uniform(0, 0.1, 10)
-    # Convert polar coordinates to cartesian coordinates
-    Ix0 = radii * np.cos(angles)
-    Iy0 = radii * np.sin(angles)
-    Ixy = np.column_stack((Ix0, Iy0)) # Initial field line starting positions.
+    
     for i in range(n_particles):
         for j in range(10):
             # Initialise a starting position
