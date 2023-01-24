@@ -24,12 +24,12 @@ polarity = np.zeros(n_particles) # Polarity encodes the charge too.
 colors = np.zeros(n_particles, dtype=str)
 
 # Set initial positions, and polarities of particles
-polarity_values = [-5,-4,-3,-2,-1,1,2,3,4,5] # Possible polarity values. This allows us to randomise polarities such that they may sum to zero.
+polarity_values = np.arange(-10,10,1) # Possible polarity values. This allows us to randomise polarities such that they may sum to zero.
 
 for i in range(n_particles):
     x[i] = np.random.uniform(-box_length, box_length)
     y[i] = np.random.uniform(-box_length, box_length)
-    polarity[i] = np.random.choice(polarity_values) # Randomly assign polarity values
+    polarity[i] = np.random.choice(polarity_values) # Randomly assign polarity values, 2 for magnitude.
     colors[i] = 'r' if polarity[i] >= 0 else 'b'
 
 total_polarity = np.sum(polarity) # Calculate the total polarity
@@ -45,14 +45,14 @@ while total_polarity != 0:
 
 # Time step, simulation length
 dt = 0.1
-t_max = 1
+t_max = 3
 # Initialisers for fieldline calcs
 C = 1 # Test constant.
 t_vals = np.arange(0, t_max, dt)
 # Generate random angles
-angles = np.random.uniform(0, 2*np.pi, 10)
-# Generate random radius
-radii = np.random.uniform(0, 0.1, 10)
+angles = np.arange(0,np.pi/2, 50) # From (0,pi/2) for the altitude, from (0,2pi) for azimuthal (eventually)
+# Define radius
+radii = 0.1 
 # Convert polar coordinates to cartesian coordinates
 Ix0 = radii * np.cos(angles)
 Iy0 = radii * np.sin(angles)
@@ -119,8 +119,7 @@ def update(t,x,y,polarity):
     Here we will use odeint to solve field lines. Steps are in Notion.
     1. Create a function that defines the function we are integrating.
     2. Integrate using odeint.
-    3. Create a circle around chosen particle, initialise field line starting positions.
-    4. Call function that solves the DE and see where it ends up for t_vals = np.arange(0, t_max, dt) 
+    3. Use the Ixy array for field line starting positions, translating by x[i],y[i] for chosen particle.
     """
     def field_line(M, t, C):
         p, q = M
@@ -131,19 +130,17 @@ def update(t,x,y,polarity):
             dByds += ((q-y[i])/norm) * polarity[i]
         dBds = [dBxds, dByds]
         return dBds
-    
-    for i in range(n_particles):
-        for j in range(10):
-            # Initialise a starting position
-            B0 = [Ixy[j,0], Ixy[j,1]]
-            sol = odeint(field_line, B0, t_vals, args=(C,)) #No idea if this is working.
-    
+    i = 3
+    for j in range(len(Ixy)):
+        B0 = (Ix0[j]+x[i], Iy0[j]+y[j])
+        sol = odeint(field_line, B0, t_vals, args=(C,))
+    print(sol)
     axis.set_xlim(-box_length, box_length) # Ensures the animation looks more natural.
     axis.set_ylim(-box_length, box_length)
 
 # Create the animation object
-anim = FuncAnimation(fig, update, frames=num_of_frames, fargs=(x,y,polarity), interval=10)
-# anim.save('myanimation.gif') 
+anim = FuncAnimation(fig, update, frames=num_of_frames, fargs=(x,y,polarity), interval=10, repeat = False)
+#anim.save('myanimation.gif') 
 # Currently the animation object does not terminate on its own.
 # Show the plot
 plt.show()
