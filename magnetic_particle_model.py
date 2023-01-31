@@ -4,25 +4,22 @@ from matplotlib.animation import FuncAnimation
 import os
 from scipy.integrate import odeint
 import itertools
-"""
-Using our code previously built, this code will be a construction of small N particles interacting, modelling in a random walk motion.
-We implement periodic boundary conditions: if particles leave a given domain, it will mirror itself and return back inside the "box" 
-by flipping the coordinates (may be easier to simply implement taking away the length of the box.)
-"""
+import sys
 
 # Constants
 n_particles = 4 # Number of particles
 velocity_scale = 3 # Determines the magnitude of each random walk
-box_length = 5
+box_length = 5 # For periodic boundary conditions.
 n_points  = 100
 
-# Initialize arrays to store positions, velocities, and polarities of particles
+# Initialize arrays to store positions, velocities, and polarities of particles. Also initialise the static state analysis vars
 x = np.zeros(n_particles)
 y = np.zeros(n_particles)
 vx = np.zeros(n_particles)
 vy = np.zeros(n_particles)
 polarity = np.zeros(n_particles) # Polarity encodes the charge too.
 colors = np.zeros(n_particles, dtype=str)
+x_stor, y_stor, polarity_stor = [], [], []
 
 # Set initial positions, and polarities of particles
 polarity_values = np.array(list(itertools.chain(*[range(-10, 0), range(1, 10+1)]))) # Possible polarity values. This allows us to randomise polarities such that they may sum to zero.
@@ -46,7 +43,7 @@ while total_polarity != 0:
 
 # Time step, simulation length
 dt = 0.1
-t_max = 5
+t_max = 2
 IPs = 10 # Number of initial field line IPs
 
 """Initialisers for fieldline calcs"""
@@ -59,7 +56,7 @@ def sample_spherical(npoints, ndim=3):
     vec = np.random.randn(ndim, npoints)
     vec /= np.linalg.norm(vec, axis=0)
     return 0.1*vec
-#0.1 for radius
+# 0.1 for radius. Is this the correct way to normalise to 0.1?
 Ix0, Iy0, Iz0 = sample_spherical(IPs)
 final_particle = np.zeros(n_particles)
 
@@ -120,21 +117,32 @@ def update(t,x,y,polarity):
     """
     # Streamline plot
     axis.streamplot(X,Y,Bx,By, density=1.4, linewidth=None, color='#A23BEC')
-    """
-    BELOW CODE IS IN TESTING STAGES. THIS CODE IS TO SEE WHERE FIELD LINES END UP.
-    THE LOGIC NEEDS TO BE SWAPPED, FIELD LINE IPS AFTER THE PARTICLE. MAYBE NOT, CHECK THIS.
-    """
+    
     def field_line(M, t, C):
         p, q, z = M
         dBxds, dByds, dBzds = 0, 0, 0
         for i in range(n_particles): # Contribution to B from each particle
-            norm = np.sqrt((p-x[i])**2 + (q-y[i])**2)
+            norm = np.sqrt((p-x[i])**2 + (q-y[i])**2+(z)**2)
             dBxds += ((p-x[i])/norm) * polarity[i]
             dByds += ((q-y[i])/norm) * polarity[i]
-            dBzds += 0 # Since particles do not move on the z plane, the z contribution will always be zero.
+            dBzds += z/norm * polarity[i] # No particle movement on z plane means the only term is that of the ip
+            """
+            Attempt at first order approximation. There should be 8 terms: one where we've added box length to x but not y, one we've added it to y not x etc.
+            dBxds, dByds += ((p-(x[i]-box_length))/NEW_norm) * polarity[i], ((q-(y[i]+box_length))/NEW_norm) * polarity[i]
+            dBxds, dByds += ((p-(x[i]-box_length))/NEW_norm) * polarity[i], ((q-y[i])/NEW_norm) * polarity[i]
+            dBxds, dByds += ((p-(x[i]-box_length))/NEW_norm) * polarity[i], ((q-(y[i]-box_length))/NEW_norm) * polarity[i]
+            dBxds, dByds += ((p-x[i])/NEW_norm) * polarity[i], ((q-(y[i]+box_length))/NEW_norm) * polarity[i]
+            dBxds, dByds += ((p-x[i])/NEW_norm) * polarity[i], ((q-(y[i]-box_length))/NEW_norm) * polarity[i]
+            dBxds, dByds += ((p-(x[i]+box_length))/NEW_norm) * polarity[i], ((q-(y[i]+box_length))/NEW_norm) * polarity[i]
+            dBxds, dByds += ((p-(x[i]+box_length))/NEW_norm) * polarity[i], ((q-y[i])/NEW_norm) * polarity[i]
+            dBxds, dByds += ((p-(x[i]+box_length))/NEW_norm) * polarity[i], ((q-(y[i]-box_length))/NEW_norm) * polarity[i]
+            """
+            
         dBds = [C * dBxds, C * dByds, C * dBzds] # Constant to confirm right direction of B field solving
         return dBds
+    
     I = 0 # Test particle
+    
     if np.linalg.norm((x[I],y[I])) < box_length: # i.e no need to bother checking if not in a suitable length.
         for k in range(1,n_particles): # Do not want to include 0. How can we have this so that it checks for every particle except the chosen test particle?
             pos = (x[k], y[k])
@@ -148,20 +156,33 @@ def update(t,x,y,polarity):
                 end = end[0:2] # Only need x and y coords
                 if np.linalg.norm(end-pos) < interaction_radius: # Seems reasonable
                     final_particle[k] += 1
-                    print("Added to {} !".format(k))
+                    # print("Added to {} !".format(k))
+    else:
+        sys.exit()
     results = [final_particle[a]/np.sum(final_particle) for a in range(n_particles)]
-    print(final_particle)
-    print(results)
+    # print(results)
     axis.set_xlim(-box_length, box_length) # Ensures the animation looks more natural.
     axis.set_ylim(-box_length, box_length)
+    """Static analysis storage (may also need to store colours"""
+    x_stor.extend(x),y_stor.extend(y), polarity_stor.extend(polarity) # This isn't really helpful.
+    print("After a time step", final_particle)
 
 # update(1, x, y, polarity)
 # Create the animation object
 anim = FuncAnimation(fig, update, frames=num_of_frames, fargs=(x,y,polarity), interval=10, repeat = False) #Code doesn't seem to want to run if I put repeat false/
-print("Terminated!")
-
 
 #anim.save('myanimation.gif') 
 # Currently the animation object does not terminate on its own.
 # Show the plot
 plt.show()
+
+"""
+Potential solution for "Static analysis":
+Store information on x, y and z at each step in a separate array outside of the update function. Also store polarities.
+We can then use def fieldline outside of the update function and preform the field line analysis. We can use matplotlib to visualise our chosen instance.
+If we want to continue the simulation from a given steady state, just feed back into update function with appropriate x, y, polarities.
+"""
+print(x_stor,y_stor,polarity_stor)
+"""Now pick the time you would like to preform the analysis. We go from 0 to t_max with intervals of 0.1; use that to calculate what ts you can calculate."""
+t_index = 7
+print(x_stor[t_index], y_stor[t_index], polarity_stor[t_index]) # Not working for the reaons anticipated.
