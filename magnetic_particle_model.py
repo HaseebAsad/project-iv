@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import os
 from scipy.integrate import odeint
 import itertools
 import sys
@@ -10,7 +9,6 @@ import sys
 n_particles = 4 # Number of particles
 velocity_scale = 3 # Determines the magnitude of each random walk
 box_length = 5 # For periodic boundary conditions.
-n_points  = 100
 
 # Initialize arrays to store positions, velocities, and polarities of particles. Also initialise the static state analysis vars
 x = np.zeros(n_particles)
@@ -42,13 +40,13 @@ while total_polarity != 0:
     total_polarity = np.sum(polarity)
 
 # Time step, simulation length
-dt = 0.1
-t_max = 2
+dt = 0.5
+t_max = 0.5
 IPs = 10 # Number of initial field line IPs
 
 """Initialisers for fieldline calcs"""
 C = 1 # Constant allows for flipping of B field for negative pols.
-t_vals = np.linspace(0, t_max, 10) # This refers to the timesteps/arclengths that will be integrated over in odeint
+s_vals = np.linspace(0, 2*box_length, 50) # This refers to the timesteps/arclengths that will be integrated over in odeint. box_length so integrates over a reasonable sized arc.
 """ Random points on sphere, following the algorithm as per Wolfram.
 We follow the final algorithm on the page - pick a random normal variable for each x, y and z and then normalise to r.
 """
@@ -107,7 +105,7 @@ def update(t,x,y,polarity):
             if y[i] < -box_length:
                 y[i] += 2*box_length
         """Calculate B-field, and add visual tags for each particle"""
-        denom = np.sqrt((X-x[i])**2 + (Y-y[i])**2)
+        denom = (np.sqrt((X-x[i])**2 + (Y-y[i])**2))**3
         Bx += ((X-x[i])/denom) * polarity[i]
         By += ((Y-y[i])/denom) * polarity[i]
         axis.text(x[i], y[i], f"{i, polarity[i]}") # Show index and charge of particle alongside.
@@ -116,61 +114,80 @@ def update(t,x,y,polarity):
     Calculate the form of the B-field and plot. This gives a better visualisation than solving the field_line using odeint.
     """
     # Streamline plot
-    axis.streamplot(X,Y,Bx,By, density=1.4, linewidth=None, color='#A23BEC')
-    
+    axis.streamplot(X,Y,Bx,By, density=1.8, linewidth=None, color='#A23BEC')
     def field_line(M, t, C):
         p, q, z = M
         dBxds, dByds, dBzds = 0, 0, 0
         for i in range(n_particles): # Contribution to B from each particle
-            norm = np.sqrt((p-x[i])**2 + (q-y[i])**2+(z)**2)
+            norm = (np.sqrt((p-x[i])**2 + (q-y[i])**2+(z)**2))**3 #Even if we take the cube root factor out, its still not working too well.
             dBxds += ((p-x[i])/norm) * polarity[i]
             dByds += ((q-y[i])/norm) * polarity[i]
             dBzds += z/norm * polarity[i] # No particle movement on z plane means the only term is that of the ip
-            """
-            Attempt at first order approximation. There should be 8 terms: one where we've added box length to x but not y, one we've added it to y not x etc.
-            dBxds, dByds += ((p-(x[i]-box_length))/NEW_norm) * polarity[i], ((q-(y[i]+box_length))/NEW_norm) * polarity[i]
-            dBxds, dByds += ((p-(x[i]-box_length))/NEW_norm) * polarity[i], ((q-y[i])/NEW_norm) * polarity[i]
-            dBxds, dByds += ((p-(x[i]-box_length))/NEW_norm) * polarity[i], ((q-(y[i]-box_length))/NEW_norm) * polarity[i]
-            dBxds, dByds += ((p-x[i])/NEW_norm) * polarity[i], ((q-(y[i]+box_length))/NEW_norm) * polarity[i]
-            dBxds, dByds += ((p-x[i])/NEW_norm) * polarity[i], ((q-(y[i]-box_length))/NEW_norm) * polarity[i]
-            dBxds, dByds += ((p-(x[i]+box_length))/NEW_norm) * polarity[i], ((q-(y[i]+box_length))/NEW_norm) * polarity[i]
-            dBxds, dByds += ((p-(x[i]+box_length))/NEW_norm) * polarity[i], ((q-y[i])/NEW_norm) * polarity[i]
-            dBxds, dByds += ((p-(x[i]+box_length))/NEW_norm) * polarity[i], ((q-(y[i]-box_length))/NEW_norm) * polarity[i]
-            """
+            """ First order terms. Very slow. Could make it quicker by putting the radial drop off without re-referencing the variable, but we'll see.
+
+            norm  = (np.sqrt((p-(x[i]-box_length))**2 + (q-(y[i]+box_length))**2+(z)**2))**3
+            dBxds += ((p-(x[i]-box_length))/norm) * polarity[i]
+            dByds += ((q-(y[i]+box_length))/norm) * polarity[i]
+
+            norm  = (np.sqrt((p-(x[i]-box_length))**2 + (q-(y[i])**2+(z)**2)))**3
+            dBxds += ((p-(x[i]-box_length))/norm) * polarity[i]
+            dByds +=  ((q-y[i])/norm) * polarity[i]
+
+            norm  = (np.sqrt((p-(x[i]-box_length))**2 + (q-(y[i]-box_length))**2+(z)**2))**3 # could be error here or one above
+            dBxds += ((p-(x[i]-box_length))/norm) * polarity[i]
+            dByds += ((q-(y[i]-box_length))/norm) * polarity[i]
+
+            norm  = (np.sqrt((p-(x[i]))**2 + (q-(y[i]+box_length))**2+(z)**2))**3
+            dBxds += ((p-x[i])/norm) * polarity[i]
+            dByds += ((q-(y[i]+box_length))/norm) * polarity[i]
+
+            norm  = (np.sqrt((p-(x[i]))**2 + (q-(y[i]-box_length))**2+(z)**2))**3
+            dBxds += ((p-x[i])/norm) * polarity[i]
+            dByds += ((q-(y[i]-box_length))/norm) * polarity[i]
+
+            norm  = (np.sqrt((p-(x[i]+box_length))**2 + (q-(y[i]+box_length))**2+(z)**2))**3
+            dBxds += ((p-(x[i]+box_length))/norm) * polarity[i]
+            dByds += ((q-(y[i]+box_length))/norm) * polarity[i]
+
+            norm  = (np.sqrt((p-(x[i]+box_length))**2 + (q-(y[i])**2+(z)**2)))**3
+            dBxds += ((p-(x[i]+box_length))/norm) * polarity[i]
+            dByds += ((q-y[i])/norm) * polarity[i]
+
+            norm  = (np.sqrt((p-(x[i]+box_length))**2 + (q-(y[i]-box_length))**2+(z)**2))**3 # could be error here or one above
+            dBxds += ((p-(x[i]+box_length))/norm) * polarity[i]
+            dByds += ((q-(y[i]-box_length))/norm) * polarity[i] """
             
         dBds = [C * dBxds, C * dByds, C * dBzds] # Constant to confirm right direction of B field solving
         return dBds
     
     I = 0 # Test particle
     
-    if np.linalg.norm((x[I],y[I])) < box_length: # i.e no need to bother checking if not in a suitable length.
-        for k in range(1,n_particles): # Do not want to include 0. How can we have this so that it checks for every particle except the chosen test particle?
-            pos = (x[k], y[k])
-            for j in range(IPs):
-                B0 = (Ix0[j]+x[I], Iy0[j]+y[I], Iz0[j])
-                if polarity[I] >= 0:
-                    sol = odeint(field_line, B0, t_vals , args=(C,))
-                else:
-                    sol = odeint(field_line, B0, t_vals, args=(-C,))
-                end = sol[j]
-                end = end[0:2] # Only need x and y coords
-                if np.linalg.norm(end-pos) < interaction_radius: # Seems reasonable
-                    final_particle[k] += 1
-                    # print("Added to {} !".format(k))
+    if np.linalg.norm((x[I], y[I])) < 2 * box_length:
+        positions = np.stack((x[1:], y[1:]), axis=-1)
+        for j in range(IPs):
+            B0 = (Ix0[j]+x[I], Iy0[j]+y[I], Iz0[j])
+            if polarity[I] >= 0:
+                sol = odeint(field_line, B0, s_vals , args=(C,))
+            else:
+                sol = odeint(field_line, B0, s_vals, args=(-C,))
+            ends = sol[:, :2]
+            distances = np.linalg.norm(ends[:, np.newaxis, :] - positions, axis=-1)
+            final_particle[1:] += np.count_nonzero(distances < interaction_radius, axis=0)
+
     else:
+        print("Particle 0 is out of range")
         sys.exit()
     results = [final_particle[a]/np.sum(final_particle) for a in range(n_particles)]
     # print(results)
     axis.set_xlim(-box_length, box_length) # Ensures the animation looks more natural.
     axis.set_ylim(-box_length, box_length)
-    """Static analysis storage (may also need to store colours"""
-    x_stor.extend(x),y_stor.extend(y), polarity_stor.extend(polarity) # This isn't really helpful.
     print("After a time step", final_particle)
+    return x, y, polarity
 
 # update(1, x, y, polarity)
 # Create the animation object
-anim = FuncAnimation(fig, update, frames=num_of_frames, fargs=(x,y,polarity), interval=10, repeat = False) #Code doesn't seem to want to run if I put repeat false/
-
+# Could put this anim and plt.show() in a function which will also allow us to do our static analysis.
+anim = FuncAnimation(fig, update, frames=num_of_frames, fargs=(x,y,polarity), interval=10, repeat = False) 
 #anim.save('myanimation.gif') 
 # Currently the animation object does not terminate on its own.
 # Show the plot
@@ -182,7 +199,4 @@ Store information on x, y and z at each step in a separate array outside of the 
 We can then use def fieldline outside of the update function and preform the field line analysis. We can use matplotlib to visualise our chosen instance.
 If we want to continue the simulation from a given steady state, just feed back into update function with appropriate x, y, polarities.
 """
-print(x_stor,y_stor,polarity_stor)
-"""Now pick the time you would like to preform the analysis. We go from 0 to t_max with intervals of 0.1; use that to calculate what ts you can calculate."""
-t_index = 7
-print(x_stor[t_index], y_stor[t_index], polarity_stor[t_index]) # Not working for the reaons anticipated.
+
