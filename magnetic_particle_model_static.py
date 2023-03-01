@@ -1,9 +1,9 @@
+#%%
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from scipy.integrate import odeint
 import itertools
-import sys
 
 # Constants
 n_particles = 10 # Number of particles
@@ -17,6 +17,7 @@ vx = np.zeros(n_particles)
 vy = np.zeros(n_particles)
 polarity = np.zeros(n_particles) # Polarity encodes the charge too.
 colors = np.zeros(n_particles, dtype=str)
+x_stor, y_stor, polarity_stor = [], [], []
 
 # Set initial positions, and polarities of particles
 polarity_values = np.array(list(itertools.chain(*[range(-10, 0), range(1, 10+1)]))) # Possible polarity values. This allows us to randomise polarities such that they may sum to zero.
@@ -39,9 +40,9 @@ while total_polarity != 0:
     total_polarity = np.sum(polarity)
 
 # Time step, simulation length
-dt = 0.1
-t_max = 10
-IPs = 1 # Number of initial field line IPs
+dt = 0 ## BE CAREFUL
+t_max = 1
+IPs = 10 # Number of initial field line IPs
 
 """Initialisers for fieldline calcs"""
 C = 1 # Constant allows for flipping of B field for negative pols.
@@ -55,24 +56,12 @@ def sample_spherical(npoints, ndim=3):
     return 0.1*vec
 # 0.1 for radius. Is this the correct way to normalise to 0.1?
 Ix0, Iy0, Iz0 = sample_spherical(IPs)
-final_particle = np.zeros(n_particles)
 
 # Create a figure and axis object for the plot
-fig, axis = plt.subplots()
-num_of_frames = int(t_max/dt)
 interaction_radius = 0.5
 
 # Function to update the plot at each frame
-def update(t,x,y,polarity):
-    # Clear the plot
-    axis.clear()
-    """Initialisers for B-field"""
-    Bx, By = 0, 0
-    xf = np.arange(-box_length,box_length,0.25)
-    yf = np.arange(-box_length,box_length,0.25)
-    # Meshgrid
-    X, Y = np.meshgrid(xf,yf)
-
+def update(dt,x,y,polarity):
     """Main for loop that checks for particle interactions, updates velocity based on a normal random walk, implements the resulting displacement, calculates B-field
     etc. """
     for i in range(n_particles):
@@ -84,7 +73,7 @@ def update(t,x,y,polarity):
                 polarity [j] = 0 # The particle that has its polarity adopted is now no longer of any polarity.
         if polarity [i] == 0:
             x[i], y[i] = 100*box_length, 100*box_length # This will remove the particle from physical view and no impact on magnetic field calculations.
-            # print("particle {} is dead".format(i))
+            print("particle {} is dead".format(i))
         # Update the colour of the polarity
         colors[i] = 'r' if polarity[i] >= 0 else 'b'
         """Update Velocities based on a normal random walk"""
@@ -103,8 +92,28 @@ def update(t,x,y,polarity):
                 y[i] += -2*box_length
             if y[i] < -box_length:
                 y[i] += 2*box_length
-        """Calculate B-field, and add visual tags for each particle"""
-        denom = ((np.sqrt((X-x[i])**2 + (Y-y[i])**2))**3)
+    return x, y, polarity
+
+"""
+Potential solution for "Static analysis":
+Store information on x, y and z at each step in a separate array outside of the update function. Also store polarities.
+We can then use def fieldline outside of the update function and preform the field line analysis. We can use matplotlib to visualise our chosen instance.
+If we want to continue the simulation from a given steady state, just feed back into update function with appropriate x, y, polarities.
+"""
+def run_update(x,y,polarity):
+    final_particle = np.zeros(n_particles) # Because we're doing a static analysis, we would like this reset at each point.
+    fig, axis = plt.subplots()
+    x, y, polarity = update(0, x, y, polarity)
+    # Clear the plot
+    axis.clear()
+    xf = np.arange(-box_length,box_length,0.25)
+    yf = np.arange(-box_length,box_length,0.25)
+    # Meshgrid
+    X, Y = np.meshgrid(xf,yf)
+    """Initialisers for B-field"""
+    Bx, By = 0, 0
+    for i in range(n_particles):
+        denom = (np.sqrt((X-x[i])**2 + (Y-y[i])**2))**3
         Bx += ((X-x[i])/denom) * polarity[i]
         By += ((Y-y[i])/denom) * polarity[i]
 
@@ -133,14 +142,15 @@ def update(t,x,y,polarity):
 
         Bx += ((X-(x[i]+2*box_length))/((np.sqrt((X-(x[i]+2*box_length))**2 + (Y-(y[i]-2*box_length))**2))**3)) * polarity[i]
         By += ((Y-(y[i]-2*box_length))/((np.sqrt((X-(x[i]+2*box_length))**2 + (Y-(y[i]-2*box_length))**2))**3)) * polarity[i]
-
         axis.text(x[i], y[i], f"{i, polarity[i]}") # Show index and charge of particle alongside.
     axis.scatter(x, y, c=colors, s=np.abs(polarity)*100)
-    """ 
-    Calculate the form of the B-field and plot. This gives a better visualisation than solving the field_line using odeint.
-    """
     # Streamline plot
     axis.streamplot(X,Y,Bx,By, density=1.8, linewidth=None, color='#A23BEC')
+    axis.set_xlim(-box_length, box_length) # Ensures the animation looks more natural.
+    axis.set_ylim(-box_length, box_length)
+    """
+    Field line analysis:
+    """
     def field_line(M, t, C):
         p, q, z = M
         dBxds, dByds, dBzds = 0, 0, 0
@@ -182,33 +192,25 @@ def update(t,x,y,polarity):
             
         dBds = [C * dBxds, C * dByds, C * dBzds] # Constant to confirm right direction of B field solving
         return dBds
-    
-    I = 0 # Test particle
-    
-    if np.linalg.norm((x[I], y[I])) < 2 * box_length:
-        positions = np.stack((x[1:], y[1:]), axis=-1)
-        for j in range(IPs):
-            B0 = (Ix0[j]+x[I], Iy0[j]+y[I], Iz0[j])
-            if polarity[I] >= 0:
-                sol = odeint(field_line, B0, s_vals , args=(C,))
-            else:
-                sol = odeint(field_line, B0, s_vals, args=(-C,))
-            ends = sol[:, :2]
-            distances = np.linalg.norm(ends[:, np.newaxis, :] - positions, axis=-1)
-            final_particle[1:] += np.count_nonzero(distances < interaction_radius, axis=0)
-
-    else:
-        print("Particle 0 is out of range")
-        sys.exit()
-    results = [final_particle[a]/np.sum(final_particle) for a in range(n_particles)]
-    axis.set_xlim(-box_length, box_length) # Ensures the animation looks more natural.
-    axis.set_ylim(-box_length, box_length)
+    positions = np.stack((x[1:], y[1:]), axis=-1)
+    I = 0
+    for j in range(IPs):
+        B0 = (Ix0[j]+x[I], Iy0[j]+y[I], Iz0[j])
+        if polarity[I] >= 0:
+            sol = odeint(field_line, B0, s_vals , args=(C,))
+        else:
+            sol = odeint(field_line, B0, s_vals, args=(-C,))
+        ends = sol[:, :2]
+        distances = np.linalg.norm(ends[:, np.newaxis, :] - positions, axis=-1)
+        final_particle[1:] += np.count_nonzero(distances < 0.25, axis=0)
+    plt.show()
     print(final_particle)
     return x, y, polarity
 
 x = [1.4, -2, -3, 1.12, 4.4, -3.21, -1, 3.3, 0.09, 4]
 y = [3.6, 4, 0.24, -2.13, 3, -4.321, -3, 2.3, 2.4, -3]
 polarity = [20, -3, -12 , -5, -17, 10, 6, 10, -20, 11]
-anim = FuncAnimation(fig, update, frames=num_of_frames, fargs=(x,y,polarity), interval=500, repeat = False) 
-#anim.save('myanimation.gif') 
-plt.show()
+run_update(x,y,polarity)
+
+
+# %%
