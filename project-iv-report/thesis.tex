@@ -1,0 +1,64 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+%         ____          _                           %
+%        |    \ _ _ ___| |_ ___ _____               %
+%        |  |  | | |  _|   | .'|     |              %
+%        |____/|___|_| |_|_|__,|_|_|_|              %
+%                                                   %
+% ------------------------------------------------- %
+%                                                   %
+%               This is thesis.tex.                 %
+%   This should be placed on the main thesis dir.   %
+%           Written by Samet Akcay, 2019            %
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
+                                                    %
+\documentclass[11pt]{library/duthesis}                    %
+                                                    %
+\documenttype{Thesis}  % <n-Month Report | Thesis>  %                 
+\title{The coronal heating problem and binary reconnection.}                             %
+\author{Haseeb Asad}                            %
+\dept{Department of Mathematics}                      %
+\degree{MMath Mathematics.}                       %
+\degreedate{June 2023}                              %
+\copyrightyear{}                                %
+                                                    %    
+%% File to be included while running latex.         %
+\includeonly{chapters/1/chapter,                    %
+             chapters/2/chapter,                    %
+             chapters/3/chapter,                    %
+             chapters/4/chapter,                    %
+             chapters/5/chapter,                    %     
+             chapters/6/chapter,                    %
+             references/ref,                        %
+             appendices/a/appendix,                 %
+             appendices/b/appendix}                 %
+                                                    %
+\begin{document}                                    %
+% Frontmatter.                                      %
+\frontmatter                                        %
+\titlepage                                          %
+\abstract{frontmatter/abstract}                     %
+\declaration                                        %
+\acknowledgement{frontmatter/acknowledgement.tex}   %
+\tableofcontents                                      %
+% \listofsymbols{frontmatter/listofsymbols.tex}     %
+                                                    %
+% Mainmatter                                        %
+\mainmatter                                         %   
+\include{chapters/1/chapter}                        %
+\include{chapters/2/chapter}                        %
+\include{chapters/3/chapter}                        %
+\include{chapters/4/chapter}                        %
+\include{chapters/5/chapter}                        %
+\include{chapters/6/chapter}                        %
+                                                    %
+% Bibliography                                      %
+\include{references/ref}                            %
+                                                    %
+% % Appendix                                        %
+% \appendix                                         %
+% \include{appendices/a/appendix}                   %
+% \include{appendices/b/appendix}                   %
+                                                    %
+\end{document}                                      %
+                                                    %
+% % % % % % % % % % % % % % % % % % % % % % % % % % %

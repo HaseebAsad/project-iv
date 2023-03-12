@@ -42,7 +42,7 @@ while total_polarity != 0:
 # Time step, simulation length
 dt = 0 ## BE CAREFUL
 t_max = 1
-IPs = 10 # Number of initial field line IPs
+IPs = 1000 # Number of initial field line IPs
 
 """Initialisers for fieldline calcs"""
 C = 1 # Constant allows for flipping of B field for negative pols.
@@ -94,12 +94,6 @@ def update(dt,x,y,polarity):
                 y[i] += 2*box_length
     return x, y, polarity
 
-"""
-Potential solution for "Static analysis":
-Store information on x, y and z at each step in a separate array outside of the update function. Also store polarities.
-We can then use def fieldline outside of the update function and preform the field line analysis. We can use matplotlib to visualise our chosen instance.
-If we want to continue the simulation from a given steady state, just feed back into update function with appropriate x, y, polarities.
-"""
 def run_update(x,y,polarity):
     final_particle = np.zeros(n_particles) # Because we're doing a static analysis, we would like this reset at each point.
     fig, axis = plt.subplots()
@@ -193,7 +187,7 @@ def run_update(x,y,polarity):
         dBds = [C * dBxds, C * dByds, C * dBzds] # Constant to confirm right direction of B field solving
         return dBds
     positions = np.stack((x[1:], y[1:]), axis=-1)
-    I = 0
+    I=0
     for j in range(IPs):
         B0 = (Ix0[j]+x[I], Iy0[j]+y[I], Iz0[j])
         if polarity[I] >= 0:
@@ -201,15 +195,24 @@ def run_update(x,y,polarity):
         else:
             sol = odeint(field_line, B0, s_vals, args=(-C,))
         ends = sol[:, :2]
+        for k in range(50): #len of s_vals
+            if ends[k,0] > box_length:
+                ends[k,0] += -2*box_length
+            if ends[k,0] < -box_length:
+                ends[k,0] += 2*box_length
+            if ends[k,1] > box_length:
+                ends[k,1] += -2*box_length
+            if ends[k,1] < -box_length:
+                ends[k,1] += 2*box_length
         distances = np.linalg.norm(ends[:, np.newaxis, :] - positions, axis=-1)
         final_particle[1:] += np.count_nonzero(distances < 0.25, axis=0)
     plt.show()
     print(final_particle)
     return x, y, polarity
 
-x = [1.4, -2, -3, 1.12, 4.4, -3.21, -1, 3.3, 0.09, 4]
-y = [3.6, 4, 0.24, -2.13, 3, -4.321, -3, 2.3, 2.4, -3]
-polarity = [20, -3, -12 , -5, -17, 10, 6, 10, -20, 11]
+x = [-3.32120540920803, -1.7634919917674112, -0.802611579364516, 500, 2.2878693126833016, 2.6560254792739966, 1.7695154561372055, -1.4755699288972046, 500, -4.144012452200274]
+y = [-4.84699192984154, 1.5323651281129607, -2.857417996158868, 500, 0.16954338681669906, 0.1582077227747128, 0.7492005396438319, -1.8164096234646996, 500, 0.7187526102586063]
+polarity = [30, -10, 18, 0, 8, 13, -25, -25, 0, -9]
 run_update(x,y,polarity)
 
 

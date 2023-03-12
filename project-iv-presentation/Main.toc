@@ -1,0 +1,5 @@
+\babel@toc {UKenglish}{}
+\beamer@sectionintoc {1}{Coronal Heating Problem}{2}{0}{1}
+\beamer@sectionintoc {2}{Magnetic Reconnection and binary model}{3}{0}{2}
+\beamer@sectionintoc {3}{Binary reconnection}{6}{0}{3}
+\beamer@sectionintoc {4}{Model}{7}{0}{4}

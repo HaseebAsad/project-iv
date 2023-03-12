@@ -39,8 +39,8 @@ while total_polarity != 0:
     total_polarity = np.sum(polarity)
 
 # Time step, simulation length
-dt = 0.1
-t_max = 10
+dt = 1
+t_max = 1
 IPs = 1 # Number of initial field line IPs
 
 """Initialisers for fieldline calcs"""
@@ -186,17 +186,7 @@ def update(t,x,y,polarity):
     I = 0 # Test particle
     
     if np.linalg.norm((x[I], y[I])) < 2 * box_length:
-        positions = np.stack((x[1:], y[1:]), axis=-1)
-        for j in range(IPs):
-            B0 = (Ix0[j]+x[I], Iy0[j]+y[I], Iz0[j])
-            if polarity[I] >= 0:
-                sol = odeint(field_line, B0, s_vals , args=(C,))
-            else:
-                sol = odeint(field_line, B0, s_vals, args=(-C,))
-            ends = sol[:, :2]
-            distances = np.linalg.norm(ends[:, np.newaxis, :] - positions, axis=-1)
-            final_particle[1:] += np.count_nonzero(distances < interaction_radius, axis=0)
-
+        pass
     else:
         print("Particle 0 is out of range")
         sys.exit()
@@ -206,9 +196,9 @@ def update(t,x,y,polarity):
     print(final_particle)
     return x, y, polarity
 
-x = [1.4, -2, -3, 1.12, 4.4, -3.21, -1, 3.3, 0.09, 4]
-y = [3.6, 4, 0.24, -2.13, 3, -4.321, -3, 2.3, 2.4, -3]
-polarity = [20, -3, -12 , -5, -17, 10, 6, 10, -20, 11]
 anim = FuncAnimation(fig, update, frames=num_of_frames, fargs=(x,y,polarity), interval=500, repeat = False) 
 #anim.save('myanimation.gif') 
 plt.show()
+print(x)
+print(y)
+print(polarity)

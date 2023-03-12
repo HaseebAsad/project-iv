@@ -1,0 +1,104 @@
+\setcounter{equation}{0}
+\chapter{Magnetic reconnection, helicity and heating}
+
+This chapter introduces the concepts of magnetic reconnection, helicity and heating before these ideas can be applied in the context of the binary reconnection theory and the coronal heating problem. As such, most of these results are taken from \textcolor{red}{SOURCES NEEDED HERE}, providing additional details and commentary where appropriate, whilst proofs that have been followed more closely have been cited accordingly.
+We begin by introducing the MHD equations, which will allow us to make sense of magnetic reconnection and give the needed context in later chapters.
+\section{Magnethydrodynamics Equations}
+The magnetohydrodynamics (MHD) equations govern fluid flow of electrically conducting fluids in plasmas. These equations are direct counterparts to the equations governing fluid mechanics \textcolor{red}{(better wording?)} but we find that the extra physics involved in the plasmas we are dealing with give rise to extra conditions that we must take into account. \\
+The first governing law of magnetism is the condition "no magnetic monopoles may exist" as theorised by Dirac \cite{dirac}, i.e. there may be no magnet with only one magnetic pole. Mathematically, this condition can be expressed as
+\begin{align}
+    \oint_{S} \mathbf{B}\cdot\, d \mathbf{S} = 0,
+\end{align}
+for any closed surface $S$. If $\mathbf{B}$ is differentiable, we have Maxwell's solenoidal condition:
+\begin{align}
+    \nabla \cdot \mathbf{B} = 0. \label{solenoidal}
+\end{align}
+\begin{proof}
+Let $V$ be the volume enclosed by surface $S$. Then, if $\mathbf{B}$ is differentiable it follows from the divergence theorem that $\int_V \nabla\cdot\mathbf{B}\,dV =0$. Since this is true for any surface, the integrand must be zero and we have Maxwell's solenoidal condition. \textcolor{red}{from lecture notes - find source?}
+\end{proof}
+We can extend the implications of a differentiable magnetic field further: if $\mathbf{B}$ is differentiable, using \textbf{Maxwell's solenoidal condition} (\ref{solenoidal}) we can also show that any magnetic field $\mathbf{B}$ may be written in terms of the curl of a vector potential $\mathbf{A}$:
+\begin{align}
+    \mathbf{B}=\nabla\times\mathbf{A}.
+\end{align}
+\begin{proof}
+    \textcolor{red}{The proof in more than three/general dimensions is a task to be done, three dimensions is in lecture notes.}
+\end{proof}
+This result will be crucial in the construction of the definition of helicity. This vector potential $\mathbf{A}$ is also referred to as a \textbf{flux function}. \\
+The second fundamental law of electromagnetism is \textbf{Ampère's law} \cite{ampere}:
+\begin{equation}
+    \oint_\gamma \mathbf{B}\cdot\,d\mathbf{l} = \mu_0\int_S \mathbf{J}\cdot\, d\mathbf{S}, \label{ampere}
+\end{equation}
+where $\gamma$ is the closed curve formed by the boundary of $S$ and $\mathbf{J}(\mathbf{x},t)$ is the \textbf{current density}. We can derive the differential form of Ampère's law, provided $\mathbf{B}$ and $\mathbf{J}$ are differentiable, by a straightforward application of Stokes' theorem on (\ref{ampere}):
+\begin{align}
+    \nabla \times \mathbf{B} = \mu_0 \mathbf{J}. \label{diff_ampere}
+\end{align}
+Our last fundamental law of electromagnetism governs the evolution of magnetic fields in time. \textbf{Faraday's law} \cite{ampere} describes the relation between magnetic flux through a closed curve:
+\begin{equation}
+    \frac{d\Phi_{\gamma_t}}{dt} = -\oint_{\gamma_t} (\mathbf{E}+\mathbf{v}\times\mathbf{B})\cdot\, d\mathbf{l}. \label{faraday} % WE WILL USE V AS THE VELOCITY OF THE FIELD, U WILL BE SLIPPAGE velocity.
+\end{equation}
+If we have a region where $\mathbf{E}, \mathbf{v}$ and $\mathbf{B}$ are differentiable we can derive the differential form of Faraday's law (\ref{faraday}) which we find to be a more useful result:
+\begin{equation}
+    \frac{\partial \mathbf{B}}{\partial t} = - \nabla \times \mathbf{E}. \label{diff_faraday}
+\end{equation}
+\begin{proof}
+    \textcolor{red}{In lecture notes. May be best to copy verbatim.}
+\end{proof}
+Finally, whilst not a fundamental law of magnetism, \textbf{Ohm's law} \cite{ohms} gives us another relation between $\mathbf{E}$ and $\mathbf{B}$. It states that the current is proportional to the electric field and hence, may be written as:
+\begin{equation}
+    \mathbf{J}=\sigma(\mathbf{E}+\mathbf{v}\times\mathbf{B}). \label{ohms}
+\end{equation}
+We can substitute Ohm's law (\ref{ohms}) in the differential from of Faraday's law (\ref{diff_faraday}) to arrive at the all-important induction equation:
+\begin{equation}
+    \frac{\partial \textbf{B}}{\partial t}= \nabla\times(\mathbf{v}\times\mathbf{B})+\eta\Delta\mathbf{B}. \label{induction}
+\end{equation}
+\begin{proof}
+    \textcolor{red}{This proof is adopted from the lecture notes with details filled in.} First, assuming our electrical conductivity $\sigma$ remains a constant, we can rewrite Ohm's law (\ref{ohms}) in terms of the electrical field $\mathbf{E}$:
+    \begin{align*}
+        \mathbf{E} &= \frac{\mathbf{J}}{\sigma}-\mathbf{v}\times\mathbf{B}.
+    \end{align*}
+    Now, substituting this into the differential form of Faraday's law (\ref{diff_faraday})
+    \begin{align*}
+        \frac{\partial \mathbf{B}}{\partial t} = - \nabla \times (\frac{\mathbf{J}}{\sigma}-\mathbf{v}\times\mathbf{B}), \\
+        \frac{\partial \mathbf{B}}{\partial t} = -\nabla \times (\frac{1}{\mu_0\sigma}\nabla\times\mathbf{B}-\mathbf{v}\times\mathbf{B}),
+    \end{align*}
+    where we use the differntial form of Ampère's law (\ref{diff_ampere}) $\mathbf{J}=\frac{1}{\mu_0}\nabla\times\mathbf{B}$. Then, taking the curl of the bracket we have
+    \begin{align*}
+        \frac{\partial \mathbf{B}}{\partial t} = -\frac{1}{\mu\sigma}\nabla\times\nabla\times\mathbf{B}+\nabla\times(\mathbf{v}\times\mathbf{B}) \\
+        \frac{\partial \mathbf{B}}{\partial t} = \nabla\times(\mathbf{v}\times\mathbf{B}) - \frac{1}{\mu\sigma}(\nabla(\nabla\cdot\mathbf{B})-\Delta\mathbf{B})
+    \end{align*}
+    where we have used the vector identity $\nabla\times(\nabla\times\mathbf{B}=\nabla(\nabla\cdot\mathbf{B})-\Delta\mathbf{B}$. Finally, apply Maxwell's solenoidal condition (\ref{solenoidal}) and label the new variable $\eta = \frac{1}{\mu_0\sigma}$, the \textbf{magnetic diffusivity}, we arrive at the form of the induction equation (\ref{induction}).
+\end{proof}
+
+\section{Magnetic reconnection}
+An \textbf{ideal fluid}, in this case an ideal plasma, in the context of the MHD equations is defined as a fluid in which we have the infinite conductivity limit i.e. $\sigma \rightarrow \infty$ and thus $\eta\rightarrow 0$. In such a case, we have the ideal MHD induction equation: 
+\begin{equation}
+    \frac{\partial \mathbf{B}}{\partial t} = \nabla \times (\mathbf{v}\times\mathbf{B}).
+\end{equation}
+Then it stands to say the non-ideal term in the induction is the contribution from Ohm's law. Let us label this non-ideal term as $\mathbf{N}=\frac{\mathbf{J}}{\sigma}$. Substituting in Ohm's law, we have
+\begin{align}
+    \mathbf{N} = \mathbf{E} + \mathbf{v}\times\mathbf{B}. \label{nonideal}
+\end{align}
+Maxwell's third equation \cite{maxwell} states the curl of the electric field is negative the time derivative of its corresponding magnetic field:
+\begin{equation}
+    \nabla \times \mathbf{E} = -\frac{\partial B}{\partial t}. \label{maxwell}
+\end{equation}
+Hence, it follows to stay that for electrostatic fields the curl of the electric field is zero. Any curl-free vector field may be written as the gradient of a potential scalar field \cite{manogue_dray}, so let us rewrite our electric field in the non-ideal equation (\ref{nonideal}) in terms of the gradient of a scalar potential $\Phi$:
+\begin{align}
+    \mathbf{N} = \nabla\Phi + \mathbf{u}\times\mathbf{B}, \label{nonidealslippage}
+\end{align}
+where we now have the \textbf{slippage velocity} \textcolor{red}{which is what?} $\mathbf{u}$ arising from the electrostatic nature of the magnetic field. %??
+Then, following similar logic of the proof of the induction equation (\ref{induction}), let us rearrange (\ref{nonideal}) as $\mathbf{N}-(\mathbf{v}\times\mathbf{B})=\mathbf{E}$. Now, we substitute the electrostatic form of the non-ideal term (\ref{nonidealslippage}) so that we have 
+\begin{align}
+    \nabla\Phi + (\mathbf{u}-\mathbf{v})\times\mathbf{B} = \mathbf{E}. 
+\end{align}
+Taking the curl of both sides (noting the curl of a gradient is zero) and applying Maxwell's third equation \ref{maxwell} we arrive at an alternative form of the induction equation: \textcolor{red}{minus sign?}
+\begin{equation}
+    \frac{\partial\mathbf{B}}{\partial t} = \nabla \times (\mathbf{u}-\mathbf{v})\times\mathbf{B}.
+\end{equation}
+It is clear then that the evolution of the magnetic field depends on the slippage velocity $\mathbf{u}$ and thus the non-ideal term in general. \\
+There are several cases for what the non-ideal term (\ref{nonidealslippage}) could be:
+\begin{itemize}
+    \item If $\mathbf{N} = \nabla\Phi + \mathbf{u}\times\mathbf{B}$ and $\mathbf{u}$ is smooth, the magnetic field slips with velocity $\mathbf{u}$ or diffuses through the plasma;
+    \item If $\mathbf{N} = \nabla\Phi + \mathbf{u}\times\mathbf{B}$ but $\mathbf{u}$ is singular at a point, then 2D reconnection occurs there;
+    \item If then reconnection occurs in 2.5D or 3D.
+\end{itemize}
