@@ -30,7 +30,7 @@ for i in range(n_particles):
 
 total_polarity = np.sum(polarity) # Calculate the total polarity
 
-# Check to ensure total pol is 0
+# Check to ensure total flux is 0
 while total_polarity != 0:
     # Select polarity value that is not in the polarity array
     new_polarity = np.random.choice([p for p in polarity_values if p not in polarity])
@@ -52,9 +52,8 @@ We follow the final algorithm on the page - pick a random normal variable for ea
 """
 def sample_spherical(npoints, ndim=3):
     vec = np.random.randn(ndim, npoints)
-    vec /= np.linalg.norm(vec, axis=0)
+    vec /= np.linalg.norm(vec, axis=0) # unit normalised.
     return 0.1*vec
-# 0.1 for radius. Is this the correct way to normalise to 0.1?
 Ix0, Iy0, Iz0 = sample_spherical(IPs)
 
 # Create a figure and axis object for the plot
@@ -210,10 +209,8 @@ def run_update(x,y,polarity):
     print(final_particle)
     return x, y, polarity
 
-x = [-3.32120540920803, -1.7634919917674112, -0.802611579364516, 500, 2.2878693126833016, 2.6560254792739966, 1.7695154561372055, -1.4755699288972046, 500, -4.144012452200274]
-y = [-4.84699192984154, 1.5323651281129607, -2.857417996158868, 500, 0.16954338681669906, 0.1582077227747128, 0.7492005396438319, -1.8164096234646996, 500, 0.7187526102586063]
-polarity = [30, -10, 18, 0, 8, 13, -25, -25, 0, -9]
+x = [-2.26130156, -2.71487122, -1.9408815, 3.26123605, -2.59257517, -2.36060665, 1.82566019, -0.4908215, -1.20208611, -3.59610458]
+y = [3.57235013, -0.99226015, 3.14429181, -4.10514027, -2.64590556, 4.7930023, 3.5966167, -3.08457845, 4.95818256, -0.80632212]
+polarity = [10, -24, 4, -2, -9, 7, 3, 6, 4, 1]
 run_update(x,y,polarity)
-
-
 # %%

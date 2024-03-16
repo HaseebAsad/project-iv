@@ -1,3 +1,4 @@
+#%%
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -7,7 +8,7 @@ import sys
 
 # Constants
 n_particles = 10 # Number of particles
-velocity_scale = 3 # Determines the magnitude of each random walk
+velocity_scale = 0 # Determines the magnitude of each random walk
 box_length = 5 # For periodic boundary conditions.
 
 # Initialize arrays to store positions, velocities, and polarities of particles. Also initialise the static state analysis vars
@@ -27,9 +28,9 @@ for i in range(n_particles):
     polarity[i] = np.random.choice(polarity_values) # Randomly assign polarity values, 2 for magnitude.
     colors[i] = 'r' if polarity[i] >= 0 else 'b'
 
-total_polarity = np.sum(polarity) # Calculate the total polarity
+total_polarity = np.sum(polarity) # Calculate the total magnitude
 
-# Check to ensure total pol is 0
+# Check to ensure total mag is 0
 while total_polarity != 0:
     # Select polarity value that is not in the polarity array
     new_polarity = np.random.choice([p for p in polarity_values if p not in polarity])
@@ -182,23 +183,49 @@ def update(t,x,y,polarity):
             
         dBds = [C * dBxds, C * dByds, C * dBzds] # Constant to confirm right direction of B field solving
         return dBds
-    
-    I = 0 # Test particle
-    
+    positions = np.stack((x[1:], y[1:]), axis=-1)
+    I=0
+    for j in range(IPs):
+        B0 = (Ix0[j]+x[I], Iy0[j]+y[I], Iz0[j])
+        if polarity[I] >= 0:
+            sol = odeint(field_line, B0, s_vals , args=(C,))
+        else:
+            sol = odeint(field_line, B0, s_vals, args=(-C,))
+        ends = sol[:, :2]
+        for k in range(50): #len of s_vals
+            if ends[k,0] > box_length:
+                ends[k,0] += -2*box_length
+            if ends[k,0] < -box_length:
+                ends[k,0] += 2*box_length
+            if ends[k,1] > box_length:
+                ends[k,1] += -2*box_length
+            if ends[k,1] < -box_length:
+                ends[k,1] += 2*box_length
+        distances = np.linalg.norm(ends[:, np.newaxis, :] - positions, axis=-1)
+        final_particle[1:] += np.count_nonzero(distances < 0.25, axis=0)
     if np.linalg.norm((x[I], y[I])) < 2 * box_length:
         pass
     else:
         print("Particle 0 is out of range")
         sys.exit()
-    results = [final_particle[a]/np.sum(final_particle) for a in range(n_particles)]
     axis.set_xlim(-box_length, box_length) # Ensures the animation looks more natural.
     axis.set_ylim(-box_length, box_length)
-    print(final_particle)
+    print("dt = ",dt)
+    print("x = ", repr(x))
+    print("y=",repr(y))
+    print(repr(polarity))
+    print(repr(final_particle))
     return x, y, polarity
 
-anim = FuncAnimation(fig, update, frames=num_of_frames, fargs=(x,y,polarity), interval=500, repeat = False) 
-#anim.save('myanimation.gif') 
+x = [-2.26130156, -2.71487122, -1.9408815, 3.26123605, -2.59257517, -2.36060665, 1.82566019, -0.4908215, -1.20208611, -3.59610458]
+y = [3.57235013, -0.99226015, 3.14429181, -4.10514027, -2.64590556, 4.7930023, 3.5966167, -3.08457845, 4.95818256, -0.80632212]
+polarity = [10, -24, 4, -2, -9, 7, 3, 6, 4, 1]
+
+""" for i in range(0,9):
+    run = update(0, x, y, polarity)
+print("Finished") """
+
+anim = FuncAnimation(fig, update, frames=num_of_frames, fargs=(x,y,polarity), interval=500, repeat = False)
 plt.show()
-print(x)
-print(y)
-print(polarity)
+#anim.save('myanimation.gif') 
+#%%
